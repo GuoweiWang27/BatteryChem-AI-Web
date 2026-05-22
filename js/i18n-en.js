@@ -183,6 +183,7 @@ const I18N_EN = {
   "about.step3.desc": "Single-output XGBoost regressor with fixed hyperparameters (n_estimators=120, max_depth=6, lr=0.08). Zero formula contamination — labels are pure experimental measurements with Gaussian noise.",
   "about.dataset.title": "Dataset Sources",
   "about.dataset.intro": "The model is trained on the following public academic datasets, fully reproducible:",
+  "about.pipeline.dim": "15-Dim",
   "about.pipeline.data": "Experimental Data",
   "about.pipeline.features": "Feature Engineering",
   "about.pipeline.training": "Model Training",
