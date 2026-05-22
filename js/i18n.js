@@ -2,17 +2,12 @@
 // Scans DOM for [data-i18n] attributes and replaces text with active language
 
 const I18n = {
-  _lang: 'zh',
+  _lang: 'en',
   _dicts: { zh: I18N_ZH, en: I18N_EN },
 
   init() {
-    // Read saved preference or browser language
     const saved = localStorage.getItem('batterychem-lang');
-    if (saved && (saved === 'zh' || saved === 'en')) {
-      this._lang = saved;
-    } else if (navigator.language.startsWith('en')) {
-      this._lang = 'en';
-    }
+    this._lang = saved === 'zh' ? 'zh' : 'en';
     this.apply();
     this.updateSwitchUI();
   },
