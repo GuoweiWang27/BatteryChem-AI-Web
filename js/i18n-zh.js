@@ -183,6 +183,7 @@ const I18N_ZH = {
   "about.step3.desc": "单输出 XGBoost 回归器，固定超参数 (n_estimators=120, max_depth=6, lr=0.08)。零公式污染——标签为纯实验测量值加高斯噪声。",
   "about.dataset.title": "数据集来源",
   "about.dataset.intro": "模型训练基于以下公开学术数据集，全覆盖可复现：",
+  "about.pipeline.dim": "15 维",
   "about.pipeline.data": "实验数据",
   "about.pipeline.features": "特征工程",
   "about.pipeline.training": "模型训练",
