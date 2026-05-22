@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BatteryChem-AI — AI-Driven Electrolyte Formulation Screening</title>
+<meta name="description" content="AI-driven virtual screening of lithium-ion battery electrolytes. XGBoost 15D model trained on 4,800 experimental records, CV R²=0.91, SHAP explainable. Built for the electrochemistry community.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/design-system.css">
+</head>
+<body>
+
+<div id="nav-container"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="anim-in">
+      <div class="hero-eyebrow">
+        <span class="hero-eyebrow-dot"></span>
+        <span data-i18n="hero.eyebrow">XGBoost · 15 维特征 · CV R²=0.91</span>
+      </div>
+      <h1 data-i18n-html="hero.title">AI 驱动的<br><em>电解液配方</em><br>虚拟筛选</h1>
+      <p class="hero-sub" data-i18n="hero.subtitle">基于 CALiSol-23 及同行评审期刊的 4,800 条实验数据训练，预测锂离子电池电解液的离子电导率、稳定性窗口与 SEI 成膜倾向。每个预测附带 SHAP 可解释性归因与数据来源追溯。</p>
+      <div class="hero-actions">
+        <a href="design.html" class="btn btn-secondary btn-xl">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <span data-i18n="hero.cta1">开始配方设计</span>
+        </a>
+        <a href="evaluate.html" class="btn btn-secondary btn-xl">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span data-i18n="hero.cta2">查看模型验证</span>
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="hero-stat-val" data-i18n="hero.stat1.val">R²=0.91</div>
+          <div class="hero-stat-label" data-i18n="hero.stat1.label">5 折交叉验证</div>
+        </div>
+        <div>
+          <div class="hero-stat-val" data-i18n="hero.stat2.val">4,800+</div>
+          <div class="hero-stat-label" data-i18n="hero.stat2.label">实验训练数据</div>
+        </div>
+        <div>
+          <div class="hero-stat-val" data-i18n="hero.stat3.val">3,000+</div>
+          <div class="hero-stat-label" data-i18n="hero.stat3.label">预筛选配方</div>
+        </div>
+        <div>
+          <div class="hero-stat-val" data-i18n="hero.stat4.val">15 维</div>
+          <div class="hero-stat-label" data-i18n="hero.stat4.label">SHAP 可解释</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual anim-in delay-2">
+      <img src="assets/hero.png" alt="Lithium-ion electrolyte solvation structure — AI-driven virtual screening" style="width:100%;max-width:500px;height:auto;display:block">
+    </div>
+  </div>
+</section>
+
+<!-- MODULE OVERVIEW -->
+<section class="section section-tinted">
+  <div class="section-inner">
+    <h2 class="section-title text-center" style="margin-bottom:var(--s2)" data-i18n="home.modules.title">三大核心模块</h2>
+    <p class="section-desc text-center" style="margin:0 auto var(--s7)" data-i18n="home.modules.subtitle">从配方设计到虚拟筛选再到模型验证，完整的 AI 驱动电解液研发流程</p>
+    <div class="method-grid">
+      <a href="design.html" class="module-card" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(140,21,21,0.08);color:var(--cardinal-red)">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <h3 style="color:var(--cardinal-red)" data-i18n="nav.design">配方设计</h3>
+        <p data-i18n="home.modules.desc1">选择溶剂、锂盐和添加剂，即刻获得 5 维 AI 预测与 SHAP 特征归因。</p>
+        <div class="module-stat">
+          <span class="module-stat-num">5D</span>
+          <span class="module-stat-lbl" data-i18n="home.modules.stat1">雷达图 + SHAP</span>
+        </div>
+      </a>
+      <a href="screening.html" class="module-card" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(0,124,146,0.08);color:var(--lagunita-blue)">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <h3 style="color:var(--lagunita-blue)" data-i18n="nav.screening">高通量筛选</h3>
+        <p data-i18n="home.modules.desc2">浏览 3,000+ 预筛选配方，分面筛选定位最优候选电解液组合。</p>
+        <div class="module-stat">
+          <span class="module-stat-num">3,000+</span>
+          <span class="module-stat-lbl" data-i18n="home.modules.stat2">预筛选配方</span>
+        </div>
+      </a>
+      <a href="evaluate.html" class="module-card" style="text-decoration:none;color:inherit">
+        <div class="module-icon" style="background:rgba(108,92,231,0.08);color:var(--model-purple)">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3 style="color:var(--model-purple)" data-i18n="nav.evaluate">模型评估</h3>
+        <p data-i18n="home.modules.desc3">5 折交叉验证 R²=0.91，SHAP 瀑布图追溯每个预测的特征贡献。</p>
+        <div class="module-stat">
+          <span class="module-stat-num">R²=0.91</span>
+          <span class="module-stat-lbl" data-i18n="home.modules.stat3">5 折交叉验证</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<div id="footer-container"></div>
+
+<script src="js/i18n-zh.js"></script>
+<script src="js/i18n-en.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/footer.js"></script>
+<script>
+I18n.init();
+buildNav('home');
+buildFooter();
+
+// Re-apply on language change for dynamic nav/footer content
+document.addEventListener('i18n-change', () => {
+  buildNav('home');
+  buildFooter();
+});
+
+// Intersection observer for scroll animations
+const io = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('anim-in');
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.module-card').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

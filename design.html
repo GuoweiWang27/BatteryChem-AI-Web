@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulation Designer — BatteryChem-AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/design-system.css">
+</head>
+<body>
+
+<div id="nav-container"></div>
+
+<section class="section section-white" style="padding-top:var(--s7)">
+  <div class="section-inner">
+    <div class="section-eyebrow" data-i18n="design.eyebrow">01 — 配方设计器</div>
+    <h2 class="section-title" data-i18n="design.title">构建与预测电解液配方</h2>
+    <p class="section-desc" data-i18n="design.desc">选择溶剂体系、锂盐和添加剂来构建电解液配方——即刻获得由 15 维特征空间驱动的 AI 预测结果。</p>
+
+    <!-- Tabs: Preset vs Custom SMILES -->
+    <div class="tab-nav" style="margin-top:var(--s5)">
+      <button class="tab-btn active" data-tab="quick">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span data-i18n="design.tab.quick">预设配方</span>
+      </button>
+      <button class="tab-btn" data-tab="custom">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span data-i18n="design.tab.custom">自定义 SMILES</span>
+      </button>
+    </div>
+
+    <div class="designer-grid anim-in delay-1" style="margin-top:0">
+
+      <!-- Left: Parameter Panel -->
+      <div class="designer-panel">
+        <div class="panel-hdr">
+          <span class="panel-hdr-title" data-i18n="design.panel.title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cardinal-red)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>
+            配方参数
+          </span>
+          <button class="btn btn-ghost btn-sm" id="reset-btn" data-i18n="design.panel.reset">重置</button>
+        </div>
+        <div class="panel-body">
+
+          <!-- ===== TAB: Quick Design ===== -->
+          <div id="tab-quick">
+            <!-- Salt -->
+            <div class="panel-section">
+              <div class="panel-section-title" data-i18n="design.salt">锂盐</div>
+              <div class="radio-group" id="salt-group">
+                <div class="radio-item selected" data-value="LiPF6">
+                  <div class="radio-dot"></div>
+                  <div><div class="radio-lbl" data-i18n="design.salt.lipf6">LiPF₆</div><div class="radio-sub" data-i18n="design.salt.lipf6.desc">行业标准 · 分子量: 151.91</div></div>
+                </div>
+                <div class="radio-item" data-value="LiFSI">
+                  <div class="radio-dot"></div>
+                  <div><div class="radio-lbl" data-i18n="design.salt.lifsi">LiFSI</div><div class="radio-sub" data-i18n="design.salt.lifsi.desc">高电导率 · 分子量: 187.13</div></div>
+                </div>
+                <div class="radio-item" data-value="LiTFSI">
+                  <div class="radio-dot"></div>
+                  <div><div class="radio-lbl" data-i18n="design.salt.litfsi">LiTFSI</div><div class="radio-sub" data-i18n="design.salt.litfsi.desc">热稳定 · 分子量: 287.09</div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Solvent -->
+            <div class="panel-section">
+              <div class="panel-section-title" data-i18n="design.solvent">基础溶剂体系</div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="design.solvent.label">溶剂混合物</label>
+                <select class="form-select" id="solvent-select">
+                  <option value="ec_dmc" data-i18n="design.solvent.ecdmc">EC:DMC 1:1 (行业标准)</option>
+                  <option value="ec_dec" data-i18n="design.solvent.ecdec">EC:DEC 1:1 (高电压)</option>
+                  <option value="ec_emc" data-i18n="design.solvent.ecemc">EC:EMC 3:7 (低温)</option>
+                  <option value="dol_dme" data-i18n="design.solvent.doldme">DOL:DME 1:1 (砜基)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="design.conc.label">盐浓度</label>
+                <div class="slider-wrap">
+                  <input type="range" class="slider" id="slider-molar" min="0.8" max="1.6" step="0.05" value="1.0">
+                  <span class="slider-val" id="val-molar">1.0 M</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Additive -->
+            <div class="panel-section">
+              <div class="panel-section-title" data-i18n="design.additive">添加剂体系</div>
+              <div class="mode-selector" id="additive-mode">
+                <button class="mode-opt active" data-mode="traditional" data-i18n="design.additive.mode.traditional">常规</button>
+                <button class="mode-opt" data-mode="polyphenol" data-i18n="design.additive.mode.polyphenol">多酚</button>
+              </div>
+              <div class="form-group">
+                <select class="form-select" id="additive-select">
+                  <option value="fec" data-i18n="design.additive.fec">FEC — 氟代碳酸乙烯酯 (SEI 成膜)</option>
+                  <option value="vc" data-i18n="design.additive.vc">VC — 碳酸亚乙烯酯 (SEI 稳定)</option>
+                  <option value="ps" data-i18n="design.additive.ps">PS — 亚硫酸丙烯酯 (正极)</option>
+                  <option value="sn" data-i18n="design.additive.sn">SN — 丁二腈 (离子传输)</option>
+                  <option value="adn" data-i18n="design.additive.adn">ADN — 己二腈 (高电压)</option>
+                  <option value="dtd" data-i18n="design.additive.dtd">DTD — 1,3,2-二氧硫杂环戊烷-2,2-二氧化物</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="design.additive.conc.label">添加剂浓度</label>
+                <div class="slider-wrap">
+                  <input type="range" class="slider" id="slider-wt" min="0.5" max="5.0" step="0.1" value="2.0">
+                  <span class="slider-val" id="val-wt">2.0 wt%</span>
+                </div>
+              </div>
+            </div>
+          </div><!-- /#tab-quick -->
+
+          <!-- ===== TAB: Custom SMILES ===== -->
+          <div id="tab-custom" style="display:none">
+            <div class="panel-section">
+              <div class="panel-section-title" data-i18n="design.salt">锂盐</div>
+              <div class="radio-group" id="salt-group-custom">
+                <div class="radio-item selected" data-value="LiPF6">
+                  <div class="radio-dot"></div>
+                  <div><div class="radio-lbl" data-i18n="design.salt.lipf6">LiPF₆</div><div class="radio-sub" data-i18n="design.salt.lipf6.desc">行业标准 · 分子量: 151.91</div></div>
+                </div>
+                <div class="radio-item" data-value="LiFSI">
+                  <div class="radio-dot"></div>
+                  <div><div class="radio-lbl" data-i18n="design.salt.lifsi">LiFSI</div><div class="radio-sub" data-i18n="design.salt.lifsi.desc">高电导率 · 分子量: 187.13</div></div>
+                </div>
+                <div class="radio-item" data-value="LiTFSI">
+                  <div class="radio-dot"></div>
+                  <div><div class="radio-lbl" data-i18n="design.salt.litfsi">LiTFSI</div><div class="radio-sub" data-i18n="design.salt.litfsi.desc">热稳定 · 分子量: 287.09</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-section">
+              <div class="panel-section-title" data-i18n="design.custom.solvent_title">溶剂 SMILES</div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="design.custom.solvent_label">溶剂 SMILES</label>
+                <div class="smiles-wrap">
+                  <input type="text" class="form-input" id="smiles-solvent" value="C1OC(=O)OC1" placeholder="e.g. C1OC(=O)OC1 (EC)" style="font-family:var(--font-code);font-size:0.78rem">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="design.custom.additive_label">添加剂 SMILES</label>
+                <div class="smiles-wrap">
+                  <input type="text" class="form-input" id="smiles-additive" value="C1=COC(=O)O1" placeholder="e.g. C1=COC(=O)O1 (VC)" style="font-family:var(--font-code);font-size:0.78rem">
+                </div>
+              </div>
+              <div class="molecule-preview" id="mol-preview" style="min-height:70px;background:var(--off-white);border-radius:var(--r-md);border:1.5px dashed var(--cool-grey-light);display:flex;align-items:center;justify-content:center;margin-top:var(--s3);padding:var(--s3)">
+                <span style="font-size:0.75rem;color:var(--text-tertiary);font-family:var(--font-code)" data-i18n="design.custom.preview_hint">输入 SMILES 后在此预览分子结构</span>
+              </div>
+            </div>
+            <div class="panel-section">
+              <div class="panel-section-title" data-i18n="design.additive.conc.label">添加剂浓度</div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="design.conc.label">盐浓度</label>
+                <div class="slider-wrap">
+                  <input type="range" class="slider" id="slider-molar-custom" min="0.8" max="1.6" step="0.05" value="1.0">
+                  <span class="slider-val" id="val-molar-custom">1.0 M</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="design.additive.conc.label">添加剂浓度</label>
+                <div class="slider-wrap">
+                  <input type="range" class="slider" id="slider-wt-custom" min="0.5" max="5.0" step="0.1" value="2.0">
+                  <span class="slider-val" id="val-wt-custom">2.0 wt%</span>
+                </div>
+              </div>
+            </div>
+          </div><!-- /#tab-custom -->
+
+          <!-- Action (shared) -->
+          <div class="panel-action">
+            <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.9rem" id="predict-btn" data-i18n="design.btn.predict">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              运行 AI 预测
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Results + Chat -->
+      <div>
+        <!-- Prediction Results -->
+        <div class="results-panel card" style="margin-bottom:var(--s4)">
+          <div class="card-hdr">
+            <span class="card-hdr-title" data-i18n="design.results.title">AI 预测结果</span>
+            <span class="badge badge-info" data-i18n="design.results.model">XGBoost · 15D 模型</span>
+          </div>
+          <div class="card-body">
+            <div class="offline-banner" id="offline-banner">
+              <span data-i18n="design.offline">离线模式 — 显示 JSON 容灾预计算参考值</span>
+            </div>
+            <div class="pred-card" id="pred-card">
+              <div style="display:flex;align-items:flex-end;gap:var(--s4);margin-bottom:var(--s4);flex-wrap:wrap">
+                <span class="pred-big-num" id="pred-num">12.4</span><span class="pred-big-unit">mS/cm</span>
+                <div style="display:flex;gap:0.3rem;flex-wrap:wrap">
+                  <span class="badge badge-a" data-i18n="design.badge.high_cond">高电导率</span>
+                  <span class="badge badge-b">Stability: <strong id="stab-val">4.35 V</strong></span>
+                  <span class="badge badge-purple">SEI: <strong id="sei-type">LiF-rich</strong></span>
+                  <span class="badge badge-info">Viscosity: <strong id="visc-val">0.62</strong></span>
+                  <span class="badge badge-b">Polarity: <strong id="polar-val">0.71</strong></span>
+                </div>
+              </div>
+
+              <!-- Citation Badges -->
+              <div style="margin-bottom:var(--s4)">
+                <div style="font-size:0.68rem;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:var(--s2);font-family:var(--font-condensed)" data-i18n="design.data_source">数据来源透明度</div>
+                <div style="display:flex;flex-direction:column;gap:var(--s2)">
+                  <div class="cite-badge cite-a">
+                    <div class="cite-badge-hdr" onclick="toggleCite('cite-1')" style="cursor:pointer">
+                      <span class="cite-dot"></span>
+                      <span class="cite-source" data-i18n="cite.calisol">CALiSol-23 · 高质量</span>
+                      <span class="cite-ci">95% CI</span>
+                    </div>
+                    <div class="cite-detail" id="cite-1">
+                      <div class="cite-detail-row"><span data-i18n="cite.source">数据来源</span><span>J. Electrochem. Soc. 2019, 166, A3015</span></div>
+                      <div class="cite-detail-row"><span data-i18n="cite.sample_size">样本量</span><span>N = 127</span></div>
+                      <div class="cite-detail-row"><span data-i18n="cite.ci_range">置信区间</span><span>[11.8, 13.2] mS/cm</span></div>
+                      <div class="cite-detail-row"><span data-i18n="cite.method">测量方法</span><span>EIS 电化学阻抗谱</span></div>
+                    </div>
+                  </div>
+                  <div class="cite-badge cite-b">
+                    <div class="cite-badge-hdr" onclick="toggleCite('cite-2')" style="cursor:pointer">
+                      <span class="cite-dot"></span>
+                      <span class="cite-source" data-i18n="cite.semi_empirical">半经验估算 · 中等</span>
+                      <span class="cite-ci">80% CI</span>
+                    </div>
+                    <div class="cite-detail" id="cite-2">
+                      <div class="cite-detail-row"><span data-i18n="cite.method">方法</span><span>DFT HOMO/LUMO 能隙外推</span></div>
+                      <div class="cite-detail-row"><span data-i18n="cite.source">备注</span><span>稳定性窗口由溶剂氧化还原电位外推</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Composition Bar -->
+              <div class="comp-bar-section">
+                <div class="comp-bar-label" data-i18n="design.comp_breakdown">组成分解</div>
+                <div class="comp-bar">
+                  <div class="comp-seg seg-ec"  id="bar-ec"  style="flex:40">EC 40%</div>
+                  <div class="comp-seg seg-dmc" id="bar-dmc" style="flex:30">DMC 30%</div>
+                  <div class="comp-seg seg-salt" id="bar-salt" style="flex:20">LiPF₆ 20%</div>
+                  <div class="comp-seg seg-add" id="bar-add" style="flex:10">FEC 10%</div>
+                </div>
+              </div>
+
+              <!-- Confidence Gauge -->
+              <div class="conf-section">
+                <div class="conf-label"><span data-i18n="design.confidence_level">置信度水平</span><strong id="conf-pct">87%</strong></div>
+                <div class="conf-gauge"><div class="conf-fill" id="conf-fill"></div><div class="conf-marker" id="conf-marker"></div></div>
+              </div>
+            </div>
+
+            <!-- 5-Dim Radar + SHAP side by side -->
+            <div class="charts-row" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s4);margin-top:var(--s4)">
+              <div class="chart-card">
+                <div class="chart-title" data-i18n="design.radar.title" style="display:flex;align-items:center;gap:var(--s2);font-family:var(--font-heading);font-size:0.85rem;font-weight:700;color:var(--text-primary);margin-bottom:var(--s2)">5 维配方评估</div>
+                <div id="radar-chart" style="height:320px"></div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title" data-i18n="design.shap.title" style="display:flex;align-items:center;gap:var(--s2);font-family:var(--font-heading);font-size:0.85rem;font-weight:700;color:var(--text-primary);margin-bottom:var(--s2)">SHAP 特征归因</div>
+                <div id="shap-bar-chart" style="height:320px"></div>
+              </div>
+            </div>
+
+            <!-- Chemical Intuition -->
+            <div class="chem-intuition">
+              <div class="chem-intuition-title" data-i18n="design.chem_intuition.title">化学直觉一致性</div>
+              <p data-i18n-html="design.chem_intuition.text">模型将<strong>添加剂 LUMO</strong>识别为首要正向贡献因子 (+1.2 mS/cm)，这与电化学领域共识一致...</p>
+              <p style="margin-top:0.5rem"><strong data-i18n-html="design.chem_intuition.ref">参考文献：J. Electrochem. Soc. 2019, 166, A3015</strong></p>
+            </div>
+
+            <!-- AI Analysis CTA -->
+            <div style="background:linear-gradient(135deg, rgba(108,92,231,0.06), rgba(0,102,204,0.04));border:1px solid rgba(108,92,231,0.18);border-radius:var(--r-lg);padding:var(--s4);margin-top:var(--s4);display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap">
+              <div style="flex:1;min-width:200px">
+                <div style="font-family:var(--font-heading);font-size:0.9rem;font-weight:700;color:var(--text-primary);margin-bottom:0.2rem">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--model-purple)" stroke-width="2.5" style="vertical-align:-3px;margin-right:4px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  <span data-i18n="chat.ai_cta_title">AI 智能分析</span>
+                </div>
+                <div style="font-size:0.78rem;color:var(--text-secondary)" data-i18n="chat.ai_cta_desc">让 AI 解读预测结果，获取电化学机理分析与优化建议</div>
+              </div>
+              <button class="btn btn-primary btn-sm" id="btn-ai-analyze" style="background:var(--model-purple);border-color:var(--model-purple);white-space:nowrap;flex-shrink:0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                <span data-i18n="chat.ai_cta_btn">分析当前结果</span>
+              </button>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex;gap:var(--s2);margin-top:var(--s4);flex-wrap:wrap">
+              <button class="btn btn-secondary btn-sm" id="btn-save" data-i18n="design.btn.save">保存配方</button>
+              <button class="btn btn-secondary btn-sm" id="btn-export" data-i18n="design.btn.export">导出报告</button>
+              <a href="screening.html" class="btn btn-secondary btn-sm" id="btn-view-screening" data-i18n="design.btn.view_screening">查看筛选结果</a>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end middle column -->
+    </div><!-- end designer-grid -->
+  </div>
+</section>
+
+<!-- AI Chat — full width below designer -->
+<section class="section section-tinted" id="chat-section" style="padding-top:var(--s6);padding-bottom:var(--s6)">
+  <div class="section-inner">
+    <div class="section-eyebrow" style="display:flex;align-items:center;gap:var(--s2)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--model-purple)" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      <span data-i18n="chat.title">AI 研究助手</span>
+      <span style="display:inline-block;width:7px;height:7px;background:var(--stable-green);border-radius:50%;margin-left:var(--s1)"></span>
+      <span style="font-size:0.65rem;color:var(--text-tertiary);font-weight:400;letter-spacing:0">DeepSeek V4 Flash</span>
+    </div>
+    <div class="card">
+      <div class="card-body" style="padding:var(--s4)">
+        <div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:var(--s3);display:flex;align-items:center;gap:var(--s2)">
+          <span style="display:inline-block;width:7px;height:7px;background:var(--stable-green);border-radius:50%"></span>
+          <span data-i18n="chat.status_bar">AI 研究助手 · 基于电解液文献知识</span>
+          <span style="margin-left:auto;font-family:var(--font-condensed);font-size:0.65rem;letter-spacing:0.05em;color:var(--text-tertiary)">Powered by DeepSeek</span>
+        </div>
+        <div id="chat-msgs" style="max-height:240px;overflow-y:auto;padding:var(--s2) 0;display:flex;flex-direction:column;gap:var(--s3);margin-bottom:var(--s3)"></div>
+        <div style="display:flex;gap:var(--s2);align-items:flex-end">
+          <textarea class="chat-ta" id="chat-input" rows="1" data-i18n-placeholder="chat.placeholder" placeholder="描述您的电解液研究问题..."></textarea>
+          <button class="btn btn-primary btn-sm" id="send-btn" style="flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-container"></div>
+
+<script src="https://cdn.plot.ly/plotly-3.0.0.min.js"></script>
+<script src="js/i18n-zh.js"></script>
+<script src="js/i18n-en.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/footer.js"></script>
+<script src="data/top100_data.js"></script>
+<script src="data/radar_templates_data.js"></script>
+<script src="js/design.js"></script>
+<script src="js/chat.js"></script>
+<script>
+I18n.init();
+buildNav('design');
+buildFooter();
+Chat.init();
+
+document.addEventListener('i18n-change', () => {
+  buildNav('design');
+  buildFooter();
+  renderRadarChart();
+  renderShapBarChart();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Evaluation — BatteryChem-AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/design-system.css">
+</head>
+<body>
+
+<div id="nav-container"></div>
+
+<section class="section section-white" style="padding-top:var(--s7)">
+  <div class="section-inner">
+    <div class="section-eyebrow" data-i18n="evaluate.eyebrow">Phase 2 — 优先交付</div>
+    <h2 class="section-title" data-i18n="evaluate.title">15 维模型验证</h2>
+    <p class="section-desc" data-i18n-html="evaluate.desc">采用 5 折交叉验证和第一性原理 SHAP 归因分析的严格统计验证——与<strong>配方设计器</strong>同步上线，作为核心学术可信度展示。</p>
+
+    <!-- Metric Cards -->
+    <div class="metrics-grid anim-in" style="margin-top:var(--s6)">
+      <div class="metric-card">
+        <div class="metric-lbl" data-i18n="evaluate.cv_r2">CV R² 得分</div>
+        <div class="metric-val">0.91 <span>±0.03</span></div>
+        <div class="metric-sub" data-i18n="evaluate.5fold">5 折交叉验证</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl" data-i18n="evaluate.cv_rmse">CV RMSE</div>
+        <div class="metric-val">0.68 <span>mS/cm</span></div>
+        <div class="metric-sub" data-i18n="evaluate.rmse_sub">均方根误差</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl" data-i18n="evaluate.holdout_r2">留出法 R²</div>
+        <div class="metric-val">0.89</div>
+        <div class="metric-sub" data-i18n="evaluate.15pct">15% 独立测试集</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl" data-i18n="evaluate.train_data">训练数据</div>
+        <div class="metric-val">4,800 <span data-i18n="evaluate.records">条记录</span></div>
+        <div class="metric-sub" data-i18n="evaluate.data_source_sub">CALiSol-23 + 文献数据</div>
+      </div>
+    </div>
+
+    <!-- Scatter Plot -->
+    <div class="chart-card anim-in delay-1" style="margin-bottom:var(--s5)">
+      <div class="chart-title" data-i18n="evaluate.scatter.title" style="display:flex;align-items:center;gap:var(--s2);font-family:var(--font-heading);font-size:0.9rem;font-weight:700;color:var(--text-primary);margin-bottom:var(--s4)">交叉验证残差分析</div>
+      <div id="scatter-plot" class="plot-container" style="height:420px"></div>
+    </div>
+
+    <!-- SHAP Global Bar -->
+    <div class="chart-card anim-in delay-2" style="margin-bottom:var(--s5)">
+      <div class="chart-title" data-i18n="evaluate.shap_global.title" style="display:flex;align-items:center;gap:var(--s2);font-family:var(--font-heading);font-size:0.9rem;font-weight:700;color:var(--text-primary);margin-bottom:var(--s4)">SHAP 全局特征重要性</div>
+      <div id="shap-global-plot" class="plot-container" style="height:420px"></div>
+    </div>
+
+    <!-- SHAP Waterfall -->
+    <div class="chart-card anim-in delay-3" style="margin-bottom:var(--s5)">
+      <div class="chart-title" data-i18n="evaluate.shap_waterfall.title" style="display:flex;align-items:center;gap:var(--s2);font-family:var(--font-heading);font-size:0.9rem;font-weight:700;color:var(--text-primary);margin-bottom:var(--s4)">SHAP 瀑布图 — 单次预测特征贡献</div>
+      <div style="margin-bottom:var(--s4)">
+        <label class="form-label" style="display:inline" data-i18n="evaluate.waterfall_example">示例配方：</label>
+        <select class="facet-select" id="waterfall-select" style="width:auto;display:inline-block">
+          <option value="0">EC:DMC 1:1 + LiFSI + 3.5% FEC (σ=14.2)</option>
+          <option value="1">EC:DEC 1:1 + LiPF₆ + 2.0% VC (σ=11.6)</option>
+          <option value="2">DOL:DME 1:1 + LiTFSI + 4.0% SN (σ=10.1)</option>
+        </select>
+      </div>
+      <div id="shap-waterfall-plot" class="plot-container" style="height:400px"></div>
+    </div>
+
+    <!-- Chemical Intuition -->
+    <div class="chem-intuition">
+      <div class="chem-intuition-title" data-i18n="evaluate.chem_intuition.title">化学直觉一致性</div>
+      <p data-i18n-html="evaluate.chem_intuition.text">模型将<strong>添加剂 LUMO (0.82)</strong>和<strong>溶剂 TPSA (0.71)</strong>识别为最重要的两个特征...</p>
+      <p style="margin-top:0.5rem"><strong data-i18n-html="evaluate.chem_intuition.ref">参考文献：J. Electrochem. Soc. 2019, 166, A3015; J. Power Sources 2020, 469, 228391</strong></p>
+    </div>
+  </div>
+</section>
+
+<div id="footer-container"></div>
+
+<script src="https://cdn.plot.ly/plotly-3.0.0.min.js"></script>
+<script src="js/i18n-zh.js"></script>
+<script src="js/i18n-en.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/footer.js"></script>
+<script src="data/shap_global_data.js"></script>
+<script src="data/shap_waterfall_data.js"></script>
+<script src="js/evaluate.js"></script>
+<script>
+I18n.init();
+buildNav('evaluate');
+buildFooter();
+
+document.addEventListener('i18n-change', () => {
+  buildNav('evaluate');
+  buildFooter();
+  renderAllCharts();
+});
+</script>
+</body>
+</html>

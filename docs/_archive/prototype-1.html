@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BatteryChem-AI — Electrolyte Virtual Screening</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --cardinal: #8C1515;
+    --cardinal-light: #B83A4B;
+    --cardinal-pale: #F9ECEC;
+    --sand: #F4F0EB;
+    --warm-white: #FDFAF7;
+    --ink: #1A1410;
+    --ink-mid: #4A3F35;
+    --ink-light: #8A7B6E;
+    --border: #E2D9CF;
+    --border-strong: #C9BFB5;
+    --success: #2E7D4F;
+    --success-bg: #EDF7F1;
+    --warn: #B5650D;
+    --warn-bg: #FEF3E2;
+    --blue: #1C4E80;
+    --blue-bg: #EDF3FB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--warm-white);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── TOP NAV ── */
+  nav {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-logo {
+    width: 28px;
+    height: 28px;
+    background: var(--cardinal);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-logo svg { width: 16px; height: 16px; fill: white; }
+
+  .nav-title {
+    font-family: 'Source Serif 4', serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+
+  .nav-title span { color: var(--cardinal); }
+
+  .nav-links {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .nav-link {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: background 0.15s;
+    border: none;
+    background: none;
+  }
+  .nav-link:hover { background: var(--sand); }
+  .nav-link.active { background: var(--cardinal-pale); color: var(--cardinal); font-weight: 500; }
+
+  .nav-badge {
+    background: var(--cardinal);
+    color: white;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-left: 4px;
+  }
+
+  /* ── HERO BANNER ── */
+  .hero {
+    background: linear-gradient(135deg, #fff 0%, var(--sand) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 32px 32px 28px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .hero-text h1 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .hero-text h1 em {
+    font-style: italic;
+    color: var(--cardinal);
+  }
+
+  .hero-text p {
+    font-size: 13px;
+    color: var(--ink-light);
+    max-width: 520px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+
+  .stat-pill {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    text-align: center;
+  }
+
+  .stat-pill .num {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--cardinal);
+    display: block;
+    line-height: 1.2;
+  }
+
+  .stat-pill .lbl {
+    font-size: 11px;
+    color: var(--ink-light);
+    white-space: nowrap;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .workspace {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: calc(100vh - 56px - 120px);
+  }
+
+  /* ── LEFT PANEL ── */
+  .panel-left {
+    background: white;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-bottom: 12px;
+  }
+
+  /* Molecule selector */
+  .mol-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mol-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .mol-label {
+    font-size: 13px;
+    color: var(--ink-mid);
+    font-weight: 400;
+    min-width: 64px;
+  }
+
+  .select-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  select {
+    width: 100%;
+    padding: 7px 30px 7px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--warm-white);
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  select:focus { outline: none; border-color: var(--cardinal); }
+
+  .select-arrow {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    color: var(--ink-light);
+  }
+
+  /* Slider */
+  .slider-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .slider-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cardinal);
+    background: var(--cardinal-pale);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 4px;
+    appearance: none;
+    background: var(--border);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--cardinal);
+    border: 2px solid white;
+    box-shadow: 0 1px 4px rgba(140,21,21,0.3);
+  }
+
+  /* Mode toggle */
+  .mode-toggle {
+    display: flex;
+    background: var(--sand);
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 12px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 6px 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--ink-light);
+    border: none;
+    background: none;
+  }
+  .mode-btn.active {
+    background: white;
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  /* Tag display */
+  .mol-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+  }
+
+  .mol-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--blue-bg);
+    color: var(--blue);
+    border: 1px solid #C5D9F0;
+  }
+
+  /* Run button */
+  .run-btn {
+    margin: 16px 20px;
+    padding: 12px;
+    background: var(--cardinal);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    width: calc(100% - 40px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .run-btn:hover { background: var(--cardinal-light); }
+  .run-btn:active { transform: scale(0.98); }
+
+  .run-icon {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.5);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+    display: none;
+  }
+  .run-btn.loading .run-icon { display: block; }
+  .run-btn.loading .run-text { opacity: 0.8; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RIGHT PANEL ── */
+  .panel-right {
+    background: var(--sand);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Results header */
+  .results-header {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .results-title {
+    font-family: 'Source Serif 4', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .formulation-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mid);
+    background: var(--sand);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  /* Properties grid */
+  .results-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .props-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .prop-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .prop-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+  .prop-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .prop-card.conductivity::before { background: var(--cardinal); }
+  .prop-card.window::before { background: var(--blue); }
+  .prop-card.flash::before { background: var(--warn); }
+  .prop-card.desolv::before { background: #5B7A3B; }
+  .prop-card.sei::before { background: #6B4D8A; }
+
+  .prop-icon {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .prop-name {
+    font-size: 11px;
+    color: var(--ink-light);
+    font-weight: 400;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+  }
+
+  .prop-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+
+  .prop-unit {
+    font-size: 12px;
+    color: var(--ink-light);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+  }
+
+  .prop-bar {
+    margin-top: 10px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .prop-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .conductivity .prop-bar-fill { background: var(--cardinal); width: 78%; }
+  .window .prop-bar-fill { background: var(--blue); width: 85%; }
+  .flash .prop-bar-fill { background: var(--warn); width: 62%; }
+  .desolv .prop-bar-fill { background: #5B7A3B; width: 55%; }
+  .sei .prop-bar-fill { background: #6B4D8A; width: 90%; }
+
+  .prop-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .badge-good { background: var(--success-bg); color: var(--success); }
+  .badge-warn { background: var(--warn-bg); color: var(--warn); }
+  .badge-info { background: var(--blue-bg); color: var(--blue); }
+
+  /* ── LOWER SECTION: Radar + SHAP ── */
+  .analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .analysis-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .analysis-title {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Radar chart SVG */
+  .radar-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* SHAP bars */
+  .shap-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .shap-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .shap-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mid);
+    min-width: 100px;
+  }
+
+  .shap-bar-wrap {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .shap-bar {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  .shap-bar.pos { background: var(--cardinal); left: 0; }
+  .shap-bar.neg { background: #4A90D9; right: 0; }
+
+  .shap-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-light);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* ── TOP 100 TABLE ── */
+  .table-section {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  thead th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    background: var(--sand);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: var(--sand); }
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody td {
+    padding: 10px 12px;
+    color: var(--ink-mid);
+  }
+
+  .td-rank {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    color: var(--ink-light);
+  }
+
+  .td-rank.top3 { color: var(--cardinal); font-weight: 600; }
+
+  .td-formula {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink);
+  }
+
+  .td-score {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+  }
+
+  .score-high { color: var(--cardinal); }
+  .score-mid { color: var(--warn); }
+  .score-low { color: var(--ink-light); }
+
+  .tag-small {
+    display: inline-block;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .tag-lifp6 { background: #FDE8E8; color: #C0392B; }
+  .tag-lifsi { background: #E8F3FE; color: #1C4E80; }
+  .tag-litfsi { background: #F0F9ED; color: #2E7D4F; }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    background: white;
+    border-top: 1px solid var(--border);
+    padding: 8px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--ink-light);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    display: inline-block;
+    margin-right: 5px;
+  }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    padding: 0 24px;
+  }
+
+  .tab {
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--ink-light);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    border: none;
+    background: none;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--cardinal); border-bottom-color: var(--cardinal); font-weight: 500; }
+
+  /* Confidence band */
+  .confidence-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--blue-bg);
+    border: 1px solid #C5D9F0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--blue);
+  }
+
+  .confidence-icon { font-size: 16px; }
+
+  /* Placeholder state */
+  .placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    text-align: center;
+    gap: 12px;
+    color: var(--ink-light);
+  }
+
+  .placeholder-icon { font-size: 40px; opacity: 0.4; }
+  .placeholder h3 { font-family: 'Source Serif 4', serif; font-size: 18px; color: var(--ink-mid); font-weight: 400; }
+  .placeholder p { font-size: 13px; max-width: 320px; }
+
+  /* Mobile note */
+  @media (max-width: 900px) {
+    .workspace { grid-template-columns: 1fr; }
+    .props-grid { grid-template-columns: 1fr 1fr; }
+    .analysis-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">
+      <svg viewBox="0 0 16 16"><path d="M8 2L14 6V10L8 14L2 10V6L8 2Z"/></svg>
+    </div>
+    <span class="nav-title">Battery<span>Chem</span>-AI</span>
+  </div>
+  <div class="nav-links">
+    <button class="nav-link active">Predictor</button>
+    <button class="nav-link" onclick="showSection('screening')">Screening <span class="nav-badge">4,800</span></button>
+    <button class="nav-link" onclick="showSection('validation')">Validation</button>
+    <button class="nav-link">Docs</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-text">
+    <h1>Electrolyte <em>Virtual Screening</em><br>Powered by AI</h1>
+    <p>Select solvent · salt · additive → predict 5 electrochemical properties instantly. Built on XGBoost + CALiSol-23 experimental data.</p>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-pill">
+      <span class="num">4,800</span>
+      <span class="lbl">formulations</span>
+    </div>
+    <div class="stat-pill">
+      <span class="num">99%</span>
+      <span class="lbl">search space ↓</span>
+    </div>
+    <div class="stat-pill">
+      <span class="num">R² 0.91</span>
+      <span class="lbl">CV accuracy</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN WORKSPACE -->
+<div class="workspace">
+
+  <!-- LEFT: INPUT PANEL -->
+  <div class="panel-left">
+
+    <!-- Lithium Salt -->
+    <div class="panel-section">
+      <div class="section-label">① Lithium Salt</div>
+      <div class="mol-selector">
+        <div class="mol-row">
+          <span class="mol-label">Salt</span>
+          <div class="select-wrap">
+            <select id="salt" onchange="updateTags()">
+              <option value="LiPF6">LiPF₆ — MW 151.9</option>
+              <option value="LiFSI">LiFSI — MW 187.1</option>
+              <option value="LiTFSI">LiTFSI — MW 287.1</option>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4"/></svg>
+          </div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="mol-label">Conc.</span>
+            <span class="slider-value" id="conc-val">1.0 M</span>
+          </div>
+          <input type="range" min="0.5" max="2.0" step="0.1" value="1.0" oninput="document.getElementById('conc-val').textContent=this.value+' M'">
+        </div>
+      </div>
+    </div>
+
+    <!-- Base Solvent -->
+    <div class="panel-section">
+      <div class="section-label">② Base Solvent</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" onclick="setMode(this,'solvent','preset')">Preset Library</button>
+        <button class="mode-btn" onclick="setMode(this,'solvent','custom')">Custom SMILES</button>
+      </div>
+      <div id="solvent-preset">
+        <div class="mol-row">
+          <span class="mol-label">Mixture</span>
+          <div class="select-wrap">
+            <select id="solvent" onchange="updateTags()">
+              <option value="EC_DEC">EC:DEC 1:1</option>
+              <option value="EC_EMC">EC:EMC 3:7</option>
+              <option value="EC_DMC">EC:DMC 1:1</option>
+              <option value="PC">PC (neat)</option>
+              <option value="DOL_DME">DOL:DME 1:1</option>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4"/></svg>
+          </div>
+        </div>
+        <div class="mol-tags" id="solvent-tags">
+          <span class="mol-tag">MW 88.1</span>
+          <span class="mol-tag">TPSA 52.6</span>
+          <span class="mol-tag">LogP −0.18</span>
+          <span class="mol-tag">HOMO −8.72 eV</span>
+          <span class="mol-tag">LUMO −0.22 eV</span>
+        </div>
+      </div>
+      <div id="solvent-custom" style="display:none">
+        <input type="text" placeholder="Enter SMILES string..." style="width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:7px;font-size:13px;font-family:'DM Mono',monospace">
+        <p style="font-size:11px;color:var(--ink-light);margin-top:6px">Descriptors auto-extracted via RDKit</p>
+      </div>
+    </div>
+
+    <!-- Additive -->
+    <div class="panel-section">
+      <div class="section-label">③ Additive System</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" onclick="setMode(this,'additive','preset')">Preset Library</button>
+        <button class="mode-btn" onclick="setMode(this,'additive','custom')">Custom SMILES</button>
+      </div>
+      <div id="additive-preset">
+        <div class="mol-row">
+          <span class="mol-label">Additive</span>
+          <div class="select-wrap">
+            <select id="additive" onchange="updateTags()">
+              <optgroup label="Industrial">
+                <option value="FEC">FEC (Fluoroethylene carbonate)</option>
+                <option value="VC">VC (Vinylene carbonate)</option>
+                <option value="PS">PS (Propane sultone)</option>
+                <option value="SN">SN (Succinonitrile)</option>
+                <option value="ADN">ADN (Adiponitrile)</option>
+                <option value="DTD">DTD (1,3,2-Dioxathiolane 2,2-dioxide)</option>
+              </optgroup>
+              <optgroup label="Polyphenol (Semi-empirical)">
+                <option value="Quercetin">Quercetin</option>
+                <option value="Catechin">Catechin</option>
+                <option value="Gallic_Acid">Gallic Acid</option>
+                <option value="Resveratrol">Resveratrol</option>
+              </optgroup>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4"/></svg>
+          </div>
+        </div>
+        <div class="mol-tags" id="additive-tags">
+          <span class="mol-tag">MW 106.1</span>
+          <span class="mol-tag">TPSA 52.6</span>
+          <span class="mol-tag">LUMO −1.85 eV</span>
+          <span class="mol-tag">F-count 1</span>
+        </div>
+        <div class="slider-row" style="margin-top:10px">
+          <div class="slider-header">
+            <span class="mol-label">Dosage</span>
+            <span class="slider-value" id="add-val">5.0 wt%</span>
+          </div>
+          <input type="range" min="0.5" max="15" step="0.5" value="5" oninput="document.getElementById('add-val').textContent=this.value+' wt%'">
+        </div>
+      </div>
+      <div id="additive-custom" style="display:none">
+        <input type="text" placeholder="Enter SMILES string..." style="width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:7px;font-size:13px;font-family:'DM Mono',monospace">
+      </div>
+    </div>
+
+    <!-- Run -->
+    <button class="run-btn" id="run-btn" onclick="runPrediction()">
+      <div class="run-icon"></div>
+      <span class="run-text">Run AI Prediction</span>
+    </button>
+
+  </div>
+
+  <!-- RIGHT: OUTPUT PANEL -->
+  <div class="panel-right">
+
+    <!-- State: placeholder before first run -->
+    <div id="placeholder-state" style="flex:1">
+      <div class="placeholder">
+        <div class="placeholder-icon">⚗️</div>
+        <h3>Configure your formulation</h3>
+        <p>Select solvent, salt, and additive on the left, then click <strong>Run AI Prediction</strong> to see predicted electrochemical properties.</p>
+        <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+          <span style="font-size:11px;padding:4px 10px;background:white;border:1px solid var(--border);border-radius:6px;color:var(--ink-mid)">Ionic Conductivity</span>
+          <span style="font-size:11px;padding:4px 10px;background:white;border:1px solid var(--border);border-radius:6px;color:var(--ink-mid)">Electrochemical Window</span>
+          <span style="font-size:11px;padding:4px 10px;background:white;border:1px solid var(--border);border-radius:6px;color:var(--ink-mid)">Flash Point</span>
+          <span style="font-size:11px;padding:4px 10px;background:white;border:1px solid var(--border);border-radius:6px;color:var(--ink-mid)">Desolvation Barrier</span>
+          <span style="font-size:11px;padding:4px 10px;background:white;border:1px solid var(--border);border-radius:6px;color:var(--ink-mid)">SEI Composition</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- State: results (hidden initially) -->
+    <div id="results-state" style="display:none;flex-direction:column;gap:0">
+
+      <div class="results-header">
+        <span class="results-title">Prediction Results</span>
+        <span class="formulation-tag" id="formulation-label">EC:DEC 1:1 + LiPF₆ 1.0M + FEC 5wt%</span>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <button class="tab active" onclick="switchTab(this,'tab-props')">Properties</button>
+        <button class="tab" onclick="switchTab(this,'tab-shap')">SHAP Analysis</button>
+        <button class="tab" onclick="switchTab(this,'tab-radar')">Radar Chart</button>
+      </div>
+
+      <!-- Tab: Properties -->
+      <div id="tab-props" class="results-body">
+
+        <div class="confidence-row">
+          <span class="confidence-icon">ℹ️</span>
+          <span>Prediction within training range. Confidence band: <strong>±1.2 mS/cm</strong> for conductivity. Cross-validate against literature before wet-lab use.</span>
+        </div>
+
+        <div class="props-grid">
+
+          <div class="prop-card conductivity">
+            <span class="prop-badge badge-good">In Range</span>
+            <div class="prop-icon">⚡</div>
+            <div class="prop-name">Ionic Conductivity (σ)</div>
+            <div class="prop-value">10.2 <span class="prop-unit">mS/cm</span></div>
+            <div class="prop-bar"><div class="prop-bar-fill"></div></div>
+          </div>
+
+          <div class="prop-card window">
+            <span class="prop-badge badge-good">Stable</span>
+            <div class="prop-icon">🔋</div>
+            <div class="prop-name">Electrochemical Window</div>
+            <div class="prop-value">4.55 <span class="prop-unit">V vs. Li/Li⁺</span></div>
+            <div class="prop-bar"><div class="prop-bar-fill"></div></div>
+          </div>
+
+          <div class="prop-card flash">
+            <span class="prop-badge badge-warn">Moderate</span>
+            <div class="prop-icon">🔥</div>
+            <div class="prop-name">Flash Point</div>
+            <div class="prop-value">105 <span class="prop-unit">°C</span></div>
+            <div class="prop-bar"><div class="prop-bar-fill"></div></div>
+          </div>
+
+          <div class="prop-card desolv">
+            <span class="prop-badge badge-good">Low Barrier</span>
+            <div class="prop-icon">⚛️</div>
+            <div class="prop-name">Li⁺ Desolvation Barrier</div>
+            <div class="prop-value">42.8 <span class="prop-unit">kJ/mol</span></div>
+            <div class="prop-bar"><div class="prop-bar-fill"></div></div>
+          </div>
+
+          <div class="prop-card sei" style="grid-column: span 2;">
+            <span class="prop-badge badge-info">LiF-rich</span>
+            <div class="prop-icon">🧬</div>
+            <div class="prop-name">SEI Composition Proxy</div>
+            <div class="prop-value">0.82 <span class="prop-unit">index — LiF-dominated (F-rich SEI)</span></div>
+            <div class="prop-bar"><div class="prop-bar-fill"></div></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Tab: SHAP -->
+      <div id="tab-shap" class="results-body" style="display:none">
+        <div class="analysis-card" style="flex:1">
+          <div class="analysis-title">
+            <span>🔬</span> Feature Attribution — Ionic Conductivity
+          </div>
+          <div class="shap-list">
+            <div class="shap-row">
+              <span class="shap-name">additive_lumo</span>
+              <div class="shap-bar-wrap"><div class="shap-bar pos" style="width:82%"></div></div>
+              <span class="shap-val">+0.82</span>
+            </div>
+            <div class="shap-row">
+              <span class="shap-name">additive_pct</span>
+              <div class="shap-bar-wrap"><div class="shap-bar pos" style="width:61%"></div></div>
+              <span class="shap-val">+0.61</span>
+            </div>
+            <div class="shap-row">
+              <span class="shap-name">solvent_tpsa</span>
+              <div class="shap-bar-wrap"><div class="shap-bar pos" style="width:45%"></div></div>
+              <span class="shap-val">+0.45</span>
+            </div>
+            <div class="shap-row">
+              <span class="shap-name">salt_mw</span>
+              <div class="shap-bar-wrap"><div class="shap-bar neg" style="width:38%"></div></div>
+              <span class="shap-val">−0.38</span>
+            </div>
+            <div class="shap-row">
+              <span class="shap-name">additive_mw</span>
+              <div class="shap-bar-wrap"><div class="shap-bar neg" style="width:29%"></div></div>
+              <span class="shap-val">−0.29</span>
+            </div>
+            <div class="shap-row">
+              <span class="shap-name">solvent_logp</span>
+              <div class="shap-bar-wrap"><div class="shap-bar neg" style="width:18%"></div></div>
+              <span class="shap-val">−0.18</span>
+            </div>
+            <div class="shap-row">
+              <span class="shap-name">cross_gap</span>
+              <div class="shap-bar-wrap"><div class="shap-bar pos" style="width:15%"></div></div>
+              <span class="shap-val">+0.15</span>
+            </div>
+          </div>
+          <p style="font-size:11px;color:var(--ink-light);margin-top:14px">↑ Red = positive contribution · Blue = negative contribution. Units: mS/cm.</p>
+        </div>
+      </div>
+
+      <!-- Tab: Radar -->
+      <div id="tab-radar" class="results-body" style="display:none">
+        <div class="analysis-card" style="display:flex;flex-direction:column;align-items:center">
+          <div class="analysis-title">📡 Multi-Property Radar</div>
+          <div class="radar-wrap">
+            <svg width="260" height="260" viewBox="0 0 260 260">
+              <!-- background grid -->
+              <g opacity="0.15">
+                <polygon points="130,30 205,78 205,182 130,230 55,182 55,78" fill="none" stroke="#8A7B6E" stroke-width="1"/>
+                <polygon points="130,55 187,88 187,172 130,205 73,172 73,88" fill="none" stroke="#8A7B6E" stroke-width="1"/>
+                <polygon points="130,80 168,100 168,160 130,180 92,160 92,100" fill="none" stroke="#8A7B6E" stroke-width="1"/>
+                <polygon points="130,105 149,117 149,143 130,155 111,143 111,117" fill="none" stroke="#8A7B6E" stroke-width="1"/>
+                <line x1="130" y1="130" x2="130" y2="30" stroke="#8A7B6E" stroke-width="1"/>
+                <line x1="130" y1="130" x2="205" y2="78" stroke="#8A7B6E" stroke-width="1"/>
+                <line x1="130" y1="130" x2="205" y2="182" stroke="#8A7B6E" stroke-width="1"/>
+                <line x1="130" y1="130" x2="130" y2="230" stroke="#8A7B6E" stroke-width="1"/>
+                <line x1="130" y1="130" x2="55" y2="182" stroke="#8A7B6E" stroke-width="1"/>
+                <line x1="130" y1="130" x2="55" y2="78" stroke="#8A7B6E" stroke-width="1"/>
+              </g>
+              <!-- data polygon: conductivity, window, flash, desolv, sei, additive -->
+              <polygon
+                points="130,44 196,88 195,171 130,210 68,171 65,95"
+                fill="rgba(140,21,21,0.12)"
+                stroke="#8C1515"
+                stroke-width="2"
+                stroke-linejoin="round"/>
+              <!-- dots -->
+              <circle cx="130" cy="44" r="4" fill="#8C1515"/>
+              <circle cx="196" cy="88" r="4" fill="#8C1515"/>
+              <circle cx="195" cy="171" r="4" fill="#8C1515"/>
+              <circle cx="130" cy="210" r="4" fill="#8C1515"/>
+              <circle cx="68" cy="171" r="4" fill="#8C1515"/>
+              <circle cx="65" cy="95" r="4" fill="#8C1515"/>
+              <!-- labels -->
+              <text x="130" y="22" text-anchor="middle" font-size="10" fill="#4A3F35" font-family="DM Sans">σ Conductivity</text>
+              <text x="218" y="82" text-anchor="start" font-size="10" fill="#4A3F35" font-family="DM Sans">Echem Window</text>
+              <text x="218" y="182" text-anchor="start" font-size="10" fill="#4A3F35" font-family="DM Sans">Flash Point</text>
+              <text x="130" y="248" text-anchor="middle" font-size="10" fill="#4A3F35" font-family="DM Sans">SEI Index</text>
+              <text x="42" y="182" text-anchor="end" font-size="10" fill="#4A3F35" font-family="DM Sans">Desolvation</text>
+              <text x="42" y="90" text-anchor="end" font-size="10" fill="#4A3F35" font-family="DM Sans">Dosage</text>
+            </svg>
+          </div>
+          <p style="font-size:11px;color:var(--ink-light);text-align:center">Normalized 0–1 per property. Outer = better performance.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div>
+    <span class="status-dot"></span>
+    Model loaded · XGBoost v2.1 · ultimate_academic_brain.pkl
+  </div>
+  <div>
+    CALiSol-23 + JES + JPS + EA · 5-fold CV R² = 0.91 ± 0.04 ·
+    <span style="color:var(--cardinal)">丘成桐中学科学奖 2026</span>
+  </div>
+</div>
+
+<script>
+// ── Mode toggle
+function setMode(btn, group, mode) {
+  const parent = btn.closest('.panel-section');
+  parent.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  parent.querySelector(`#${group}-preset`).style.display = mode === 'preset' ? 'block' : 'none';
+  parent.querySelector(`#${group}-custom`).style.display = mode === 'custom' ? 'block' : 'none';
+}
+
+// ── Tags
+const ADDITIVE_TAGS = {
+  FEC: ['MW 106.1', 'TPSA 52.6', 'LUMO −1.85 eV', 'F-count 1'],
+  VC: ['MW 86.0', 'TPSA 43.4', 'LUMO −1.42 eV', 'F-count 0'],
+  PS: ['MW 122.1', 'TPSA 62.7', 'LUMO −0.98 eV', 'S-count 1'],
+  SN: ['MW 68.1', 'TPSA 58.3', 'LUMO −1.20 eV', 'N-count 2'],
+  ADN: ['MW 108.1', 'TPSA 65.4', 'LUMO −1.15 eV', 'N-count 2'],
+  DTD: ['MW 124.1', 'TPSA 74.8', 'LUMO −0.88 eV', 'S-count 1'],
+  Quercetin: ['MW 302.2', 'TPSA 127.4', 'LUMO −2.10 eV', 'Semi-empirical'],
+  Catechin: ['MW 290.3', 'TPSA 110.4', 'LUMO −1.95 eV', 'Semi-empirical'],
+  Gallic_Acid: ['MW 170.1', 'TPSA 97.5', 'LUMO −1.78 eV', 'Semi-empirical'],
+  Resveratrol: ['MW 228.2', 'TPSA 60.7', 'LUMO −1.88 eV', 'Semi-empirical'],
+};
+
+function updateTags() {
+  const add = document.getElementById('additive').value;
+  const tags = ADDITIVE_TAGS[add] || [];
+  const container = document.getElementById('additive-tags');
+  container.innerHTML = tags.map(t => `<span class="mol-tag">${t}</span>`).join('');
+}
+
+// ── Tab switch
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['tab-props','tab-shap','tab-radar'].forEach(id => {
+    document.getElementById(id).style.display = id === tabId ? 'flex' : 'none';
+  });
+  // tab-props is block-level
+  if (tabId === 'tab-props') document.getElementById(tabId).style.display = 'block';
+}
+
+// ── Run prediction (mock)
+function runPrediction() {
+  const btn = document.getElementById('run-btn');
+  btn.classList.add('loading');
+  btn.querySelector('.run-text').textContent = 'Computing…';
+
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    btn.querySelector('.run-text').textContent = 'Run AI Prediction';
+
+    // Update formulation label
+    const salt = document.getElementById('salt').value;
+    const solvent = document.getElementById('solvent');
+    const additive = document.getElementById('additive');
+    const concVal = document.getElementById('conc-val').textContent;
+    const addVal = document.getElementById('add-val').textContent;
+    const solventLabel = solvent.options[solvent.selectedIndex].text;
+    const additiveLabel = additive.options[additive.selectedIndex].text.split(' (')[0];
+
+    document.getElementById('formulation-label').textContent =
+      `${solventLabel} + ${salt} ${concVal} + ${additiveLabel} ${addVal}`;
+
+    // Show results
+    document.getElementById('placeholder-state').style.display = 'none';
+    const res = document.getElementById('results-state');
+    res.style.display = 'flex';
+    res.style.flexDirection = 'column';
+  }, 1200);
+}
+
+// ── Section nav (stub)
+function showSection(s) {
+  alert(`"${s}" module — coming in next iteration`);
+}
+</script>
+</body>
+</html>

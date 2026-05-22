@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screening Library — BatteryChem-AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/design-system.css">
+</head>
+<body>
+
+<div id="nav-container"></div>
+
+<section class="section section-white" style="padding-top:var(--s7)">
+  <div class="section-inner">
+    <div class="section-eyebrow" data-i18n="screening.eyebrow">02 — 虚拟筛选库</div>
+    <h2 class="section-title" data-i18n="screening.title">高通量配方筛选</h2>
+    <p class="section-desc" data-i18n="screening.desc">浏览 AI 大脑从 4,800+ 候选组合中预测的顶级电解液配方排名。</p>
+
+    <!-- Facet Filter Panel -->
+    <div class="facet-panel" style="margin-top:var(--s5)">
+      <div class="facet-group">
+        <label class="facet-label" data-i18n="screening.facet.solvent">溶剂</label>
+        <select class="facet-select" id="filter-solvent">
+          <option value="" data-i18n="screening.facet.all">全部</option>
+          <option value="EC:DMC 1:1">EC:DMC 1:1</option>
+          <option value="EC:DEC 1:1">EC:DEC 1:1</option>
+          <option value="EC:EMC 3:7">EC:EMC 3:7</option>
+          <option value="DOL:DME 1:1">DOL:DME 1:1</option>
+        </select>
+      </div>
+      <div class="facet-group">
+        <label class="facet-label" data-i18n="screening.facet.salt">锂盐</label>
+        <select class="facet-select" id="filter-salt">
+          <option value="" data-i18n="screening.facet.all">全部</option>
+          <option value="LiPF₆">LiPF₆</option>
+          <option value="LiFSI">LiFSI</option>
+          <option value="LiTFSI">LiTFSI</option>
+        </select>
+      </div>
+      <div class="facet-group">
+        <label class="facet-label" data-i18n="screening.facet.additive">添加剂</label>
+        <select class="facet-select" id="filter-additive">
+          <option value="" data-i18n="screening.facet.all">全部</option>
+          <option value="FEC">FEC</option>
+          <option value="VC">VC</option>
+          <option value="PS">PS</option>
+          <option value="SN">SN</option>
+          <option value="ADN">ADN</option>
+          <option value="DTD">DTD</option>
+        </select>
+      </div>
+      <div class="facet-group">
+        <label class="facet-label" data-i18n="screening.facet.conc_range">浓度范围</label>
+        <select class="facet-select" id="filter-conc">
+          <option value="" data-i18n="screening.facet.all">全部</option>
+          <option value="0,2.5">0 - 2.5 wt%</option>
+          <option value="2.5,5">2.5 - 5.0 wt%</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" data-i18n-placeholder="screening.search" placeholder="搜索配方...">
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn btn-outline btn-sm" id="reset-filters-btn" data-i18n="screening.filters">重置筛选</button>
+        <button class="btn btn-secondary btn-sm" id="export-csv-btn" data-i18n="screening.export_csv">导出 CSV</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card" style="overflow:hidden">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th data-i18n="screening.col.rank">排名</th>
+              <th data-i18n="screening.col.solvent">溶剂体系</th>
+              <th data-i18n="screening.col.salt">锂盐</th>
+              <th data-i18n="screening.col.additive">添加剂</th>
+              <th data-i18n="screening.col.conc">浓度 (wt%)</th>
+              <th data-i18n="screening.col.quality">数据质量</th>
+              <th class="sortable" data-i18n="screening.col.conductivity">σ (mS/cm)</th>
+              <th data-i18n="screening.col.confidence">置信度</th>
+              <th data-i18n="screening.col.stability">稳定性 (V)</th>
+              <th data-i18n="screening.col.actions">操作</th>
+            </tr>
+          </thead>
+          <tbody id="screening-tbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" style="padding:var(--s4) var(--s5);border-top:1px solid var(--border-light)">
+        <span id="pagination-info"></span>
+        <div class="pag-btns">
+          <button class="page-btn" id="prev-btn">&lt;</button>
+          <button class="page-btn active" id="page-1">1</button>
+          <button class="page-btn" id="page-2">2</button>
+          <button class="page-btn" id="next-btn">&gt;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-container"></div>
+
+<script src="js/i18n-zh.js"></script>
+<script src="js/i18n-en.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/footer.js"></script>
+<script src="data/top100_data.js"></script>
+<script src="js/screening.js"></script>
+<script>
+I18n.init();
+buildNav('screening');
+buildFooter();
+renderTable();
+
+document.addEventListener('i18n-change', () => {
+  buildNav('screening');
+  buildFooter();
+  renderTable();
+});
+</script>
+</body>
+</html>

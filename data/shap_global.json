@@ -1,0 +1,19 @@
+{
+  "features": [
+    {"feature": "Additive_LUMO", "importance": 0.82, "direction": "positive"},
+    {"feature": "Solvent_TPSA", "importance": 0.71, "direction": "positive"},
+    {"feature": "Salt_MW", "importance": 0.62, "direction": "positive"},
+    {"feature": "Additive_TPSA", "importance": 0.52, "direction": "positive"},
+    {"feature": "Dosage_Level", "importance": 0.42, "direction": "positive"},
+    {"feature": "Quantum_Cross_Gap", "importance": 0.34, "direction": "negative"},
+    {"feature": "Solvent_LogP", "importance": 0.26, "direction": "negative"},
+    {"feature": "Solvent_HOMO", "importance": 0.20, "direction": "positive"},
+    {"feature": "Additive_LogP", "importance": 0.13, "direction": "negative"},
+    {"feature": "Solvent_MW", "importance": 0.11, "direction": "positive"},
+    {"feature": "Solvent_LUMO", "importance": 0.09, "direction": "negative"},
+    {"feature": "Additive_HOMO", "importance": 0.07, "direction": "positive"},
+    {"feature": "Additive_MW", "importance": 0.05, "direction": "positive"},
+    {"feature": "Salt_TPSA", "importance": 0.04, "direction": "negative"},
+    {"feature": "Delta_Structure_MW", "importance": 0.03, "direction": "positive"}
+  ]
+}

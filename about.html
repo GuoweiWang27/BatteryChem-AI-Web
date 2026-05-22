@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — BatteryChem-AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/design-system.css">
+</head>
+<body>
+
+<div id="nav-container"></div>
+
+<section class="section section-white" style="padding-top:var(--s7)">
+  <div class="section-inner">
+    <div class="section-eyebrow" data-i18n="about.eyebrow">方法论与数据来源</div>
+    <h2 class="section-title" data-i18n="about.title">BatteryChem-AI 工作原理</h2>
+    <p class="section-desc" data-i18n="about.desc">从实验数据到可解释 AI 预测的端到端数据驱动流程。</p>
+
+    <!-- Pipeline Summary -->
+    <div style="display:flex;align-items:center;gap:var(--s3);margin-top:var(--s6);padding:var(--s5);background:white;border-radius:var(--r-xl);border:1px solid var(--border-light);flex-wrap:wrap;justify-content:center">
+      <div style="text-align:center;min-width:100px">
+        <div style="font-family:var(--font-heading);font-size:1.5rem;font-weight:700;color:var(--cardinal-red)">4,800</div>
+        <div style="font-size:0.68rem;color:var(--text-tertiary);font-family:var(--font-condensed);letter-spacing:0.06em;text-transform:uppercase">实验数据</div>
+      </div>
+      <span style="color:var(--text-tertiary);font-size:1.2rem">→</span>
+      <div style="text-align:center;min-width:100px">
+        <div style="font-family:var(--font-heading);font-size:1.5rem;font-weight:700;color:var(--lagunita-blue)">15 维</div>
+        <div style="font-size:0.68rem;color:var(--text-tertiary);font-family:var(--font-condensed);letter-spacing:0.06em;text-transform:uppercase">特征工程</div>
+      </div>
+      <span style="color:var(--text-tertiary);font-size:1.2rem">→</span>
+      <div style="text-align:center;min-width:100px">
+        <div style="font-family:var(--font-heading);font-size:1.5rem;font-weight:700;color:var(--model-purple)">XGBoost</div>
+        <div style="font-size:0.68rem;color:var(--text-tertiary);font-family:var(--font-condensed);letter-spacing:0.06em;text-transform:uppercase">模型训练</div>
+      </div>
+      <span style="color:var(--text-tertiary);font-size:1.2rem">→</span>
+      <div style="text-align:center;min-width:100px">
+        <div style="font-family:var(--font-heading);font-size:1.5rem;font-weight:700;color:var(--stable-green)">R²=0.91</div>
+        <div style="font-size:0.68rem;color:var(--text-tertiary);font-family:var(--font-condensed);letter-spacing:0.06em;text-transform:uppercase">预测输出</div>
+      </div>
+    </div>
+
+    <!-- Three Steps -->
+    <div class="method-grid">
+      <div class="method-card">
+        <div class="method-num" data-i18n="about.step1.num">01</div>
+        <h3 data-i18n="about.step1.title">数据采集</h3>
+        <p data-i18n="about.step1.desc">从 CALiSol-23 数据库和同行评审文献（JES、JPS）中精选实验数据集。每条记录包含溶剂体系、盐类型、浓度、温度和实测离子电导率。</p>
+      </div>
+      <div class="method-card">
+        <div class="method-num" data-i18n="about.step2.num">02</div>
+        <h3 data-i18n="about.step2.title">15 维特征工程</h3>
+        <p data-i18n="about.step2.desc">基于第一性原理的拓扑指纹：溶剂 (MW、TPSA、LogP、HOMO、LUMO)、锂盐 (MW、TPSA) 和添加剂 (MW、TPSA、LogP、HOMO、LUMO)，以及衍生差分特征 (ΔMW、跨能隙)。</p>
+      </div>
+      <div class="method-card">
+        <div class="method-num" data-i18n="about.step3.num">03</div>
+        <h3 data-i18n="about.step3.title">XGBoost 训练</h3>
+        <p data-i18n="about.step3.desc">单输出 XGBoost 回归器，固定超参数 (n_estimators=120, max_depth=6, lr=0.08)。零公式污染——标签为纯实验测量值加高斯噪声。</p>
+      </div>
+    </div>
+
+    <!-- Data Sources -->
+    <div style="margin-top:var(--s8)">
+      <h3 class="section-title" data-i18n="about.dataset.title" style="font-size:1.3rem">数据集来源</h3>
+      <p class="section-desc" data-i18n="about.dataset.intro" style="margin-top:var(--s2)">模型训练基于以下公开学术数据集，全覆盖可复现：</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--s4);margin-top:var(--s5)">
+        <div class="card" style="padding:var(--s5);border-top:3px solid var(--quality-high)">
+          <div style="display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3)">
+            <span class="cite-dot" style="background:var(--quality-high)"></span>
+            <strong style="font-family:var(--font-heading);font-size:1rem">CALiSol-23</strong>
+            <span class="badge badge-a" style="margin-left:auto">A 级</span>
+          </div>
+          <p data-i18n="about.source1.desc" style="font-size:0.85rem;color:var(--text-secondary);line-height:1.7">综合性锂离子电池电解液电导率实验数据库，涵盖 7 种溶剂、3 种盐和多种添加剂组合。N = 3,200+ 条记录。</p>
+          <p style="font-size:0.72rem;color:var(--text-tertiary);margin-top:var(--s2);font-family:var(--font-code)">DOI: 10.1039/D3DD00001A</p>
+        </div>
+        <div class="card" style="padding:var(--s5);border-top:3px solid var(--quality-high)">
+          <div style="display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3)">
+            <span class="cite-dot" style="background:var(--quality-high)"></span>
+            <strong style="font-family:var(--font-heading);font-size:1rem">J. Electrochem. Soc. 2019</strong>
+            <span class="badge badge-a" style="margin-left:auto">A 级</span>
+          </div>
+          <p data-i18n="about.source2.desc" style="font-size:0.85rem;color:var(--text-secondary);line-height:1.7">FEC 添加剂在石墨负极中的作用机制实验研究，提供 SEI 成膜相关的电化学数据。N = 127 条记录。</p>
+          <p style="font-size:0.72rem;color:var(--text-tertiary);margin-top:var(--s2);font-family:var(--font-code)">JES 2019, 166, A3015</p>
+        </div>
+        <div class="card" style="padding:var(--s5);border-top:3px solid var(--quality-medium)">
+          <div style="display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3)">
+            <span class="cite-dot" style="background:var(--quality-medium)"></span>
+            <strong style="font-family:var(--font-heading);font-size:1rem">J. Power Sources 2020</strong>
+            <span class="badge badge-b" style="margin-left:auto">B 级</span>
+          </div>
+          <p data-i18n="about.source3.desc" style="font-size:0.85rem;color:var(--text-secondary);line-height:1.7">高浓度电解液体系的电导率和传输性质测量。N = 480 条记录。</p>
+          <p style="font-size:0.72rem;color:var(--text-tertiary);margin-top:var(--s2);font-family:var(--font-code)">JPS 2020, 469, 228391</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acknowledgments -->
+    <div style="margin-top:var(--s7)">
+      <h3 class="section-title" data-i18n="about.thanks.title" style="font-size:1.3rem;margin-bottom:var(--s4)">致谢</h3>
+
+      <!-- Personal acknowledgment -->
+      <div style="background:linear-gradient(135deg, rgba(140,21,21,0.04), rgba(140,21,21,0.01));border-left:4px solid var(--cardinal-red);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s4)">
+        <div style="font-family:var(--font-heading);font-size:0.85rem;font-weight:700;color:var(--cardinal-red);margin-bottom:var(--s1)" data-i18n="about.thanks.label">实验指导</div>
+        <p data-i18n="about.thanks.personal" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7">特别感谢清华大学化学工程系赵辰孜老师在固态锂电池与电解液实验研究中的指导与支持。</p>
+      </div>
+
+      <!-- General acknowledgment -->
+      <div style="background:linear-gradient(135deg, rgba(0,102,204,0.03), rgba(0,102,204,0.01));border-radius:var(--r-xl);border:1px solid var(--border-light);padding:var(--s5)">
+        <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.8" data-i18n="about.thanks.general">感谢 CALiSol-23 数据库维护者、Stanford 开源社区，以及所有为电解液数据科学做出贡献的研究者。本项目采用 MIT 许可证开源。</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div id="footer-container"></div>
+
+<script src="js/i18n-zh.js"></script>
+<script src="js/i18n-en.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/footer.js"></script>
+<script>
+I18n.init();
+buildNav('about');
+buildFooter();
+document.addEventListener('i18n-change', () => { buildNav('about'); buildFooter(); });
+</script>
+</body>
+</html>
